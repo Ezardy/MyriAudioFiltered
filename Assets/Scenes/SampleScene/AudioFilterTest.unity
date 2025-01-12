@@ -233,8 +233,8 @@ MonoBehaviour:
   useFilter: 0
   playOnStart: 0
   isStereoFilterBuffer: 0
-  clip: {fileID: 0}
-  looping: 0
+  clip: {fileID: 8300000, guid: 58b2472992e415740acc5ac5b97aa8b0, type: 3}
+  looping: 1
   autoDestroyOnFinish: 0
   volume: 1
   innerRange: 5

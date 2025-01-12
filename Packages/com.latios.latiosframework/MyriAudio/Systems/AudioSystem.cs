@@ -327,6 +327,7 @@ namespace Latios.Myri.Systems
 				worldTransformHandle = m_worldTransformHandle,
 				coneHandle = m_coneHandle,
 				audioFrame = m_audioFrame,
+				lastPlayedAudioFrame = m_lastPlayedAudioFrame,
 				lastConsumedBufferId = m_lastReadBufferId,
 				bufferId = m_currentBufferId,
 				emitters = filteredEmitters,
@@ -421,12 +422,12 @@ namespace Latios.Myri.Systems
 				outputSamplesMegaBuffer = ildBuffer.buffer.AsDeferredJobArray(),
 				sampleRate = m_sampleRate,
 				samplesPerFrame = m_samplesPerFrame
-			}.Schedule(forIndexToListenerAndChannelIndices, 1, JobHandle.CombineDependencies(updateListenersGraphJH, filteredBatchingJH));
+			}.Schedule(forIndexToListenerAndChannelIndices, 1, JobHandle.CombineDependencies(loopedSamplingJH, filteredBatchingJH));
 
 			var shipItJH = new GraphHandling.SubmitToDspGraphJob
 			{
 				commandBlock = dspCommandBlock
-			}.Schedule(loopedSamplingJH);
+			}.Schedule(filteredSamplingJH);
 
 			state.Dependency = JobHandle.CombineDependencies(updateListenersGraphJH,  //handles captureListener and captureFrame
 															 updateOneshotsJH,  //handles destroyOneshots
@@ -437,8 +438,8 @@ namespace Latios.Myri.Systems
 				aliveListenerEntities.Dispose(updateListenersGraphJH),
 				deadListenerEntities.Dispose(updateListenersGraphJH),
 				listenersWithTransforms.Dispose(JobHandle.CombineDependencies(oneshotsCullingWeightingJH, loopedCullingWeightingJH, filteredCullingWeightingJH)),
-				listenerBufferParameters.Dispose(loopedSamplingJH),
-				forIndexToListenerAndChannelIndices.Dispose(loopedSamplingJH),
+				listenerBufferParameters.Dispose(filteredSamplingJH),
+				forIndexToListenerAndChannelIndices.Dispose(filteredSamplingJH),
 				oneshotEmitters.Dispose(oneshotsBatchingJH),
 				loopedEmitters.Dispose(loopedBatchingJH),
 				filteredEmitters.Dispose(filteredBatchingJH),
@@ -447,7 +448,7 @@ namespace Latios.Myri.Systems
 				filteredWeightsStream.Dispose(filteredBatchingJH),
 				oneshotListenerEmitterPairsStream.Dispose(oneshotsBatchingJH),
 				loopedListenerEmitterPairsStream.Dispose(loopedBatchingJH),
-				filteredListenerEmitterPairsStream.Dispose(loopedBatchingJH),
+				filteredListenerEmitterPairsStream.Dispose(filteredBatchingJH),
 				oneshotClipFrameLookups.Dispose(oneshotSamplingJH),
 				loopedClipFrameLookups.Dispose(loopedSamplingJH),
 				filteredFrameLookups.Dispose(filteredSamplingJH),

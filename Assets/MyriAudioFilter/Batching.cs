@@ -1,6 +1,7 @@
 using System;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 
@@ -13,7 +14,7 @@ namespace Latios.Myri {
 			[ReadOnly] public NativeStream.Reader			pairWeights;
 			[ReadOnly] public NativeStream.Reader			listenerEmitterPairs;
 
-			public NativeList<BufferFrameLookup>	clipFrameLookups;
+			[NativeDisableContainerSafetyRestriction] public NativeList<BufferFrameLookup>	clipFrameLookups;
 			public NativeList<Weights>				batchedWeights;
 			public NativeList<int>					targetListenerIndices;
 

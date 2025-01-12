@@ -2,6 +2,7 @@ using Latios.Transforms.Abstract;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -21,7 +22,7 @@ namespace Latios.Myri {
 
 			[ReadOnly, DeallocateOnJobCompletion] public NativeArray<int>	firstEntityInChunkIndices;
 
-			public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask) {
+			public unsafe void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask) {
 				var firstEntityIndex	= firstEntityInChunkIndices[unfilteredChunkIndex];
 				var filters				= chunk.GetNativeArray(ref filteredHandle);
 				var buffers				= chunk.GetBufferAccessor(ref bufferHandle);
@@ -39,7 +40,7 @@ namespace Latios.Myri {
 					var cones			= chunk.GetNativeArray(ref coneHandle);
 					for (int i = 0; i < chunk.Count; i++) {
 						emitters[firstEntityIndex + i] = new FilterEmitter {
-							samples		= new() {stereo = filters[i].stereo, samples = buffers[i].Reinterpret<float>()},
+							samples		= new() {stereo = filters[i].stereo, samplesBuffer = (float*)buffers[i].AsNativeArray().GetUnsafeReadOnlyPtr(), length = buffers[i].Length},
 							source		= filters[i],
 							transform	= new RigidTransform(worldTransforms[i].rotation, worldTransforms[i].position),
 							cone		= cones[i],
@@ -50,7 +51,7 @@ namespace Latios.Myri {
 					var worldTransforms = worldTransformHandle.Resolve(chunk);
 					for (int i = 0; i < chunk.Count; i++) {
 						emitters[firstEntityIndex + i] = new FilterEmitter {
-							samples		= new() {stereo = filters[i].stereo, samples = buffers[i].Reinterpret<float>()},
+							samples		= new() {stereo = filters[i].stereo, samplesBuffer = (float*)buffers[i].AsNativeArray().GetUnsafeReadOnlyPtr(), length = buffers[i].Length},
 							source		= filters[i],
 							transform	= new RigidTransform(worldTransforms[i].rotation, worldTransforms[i].position),
 							cone		= default,

@@ -1,6 +1,5 @@
 using System;
 using Unity.Collections;
-using Unity.Entities;
 using Unity.Mathematics;
 
 namespace Latios.Myri {
@@ -8,8 +7,8 @@ namespace Latios.Myri {
 		public FilterSamples	buffer;
 		public int				spawnFrameOrOffset;
 
-		public readonly bool Equals(BufferFrameLookup other) {
-			return buffer.samples.AsNativeArray() == other.buffer.samples.AsNativeArray() && buffer.stereo == other.buffer.stereo && spawnFrameOrOffset == other.spawnFrameOrOffset;
+		public unsafe readonly bool Equals(BufferFrameLookup other) {
+			return buffer.samplesBuffer == other.buffer.samplesBuffer && buffer.stereo == other.buffer.stereo && buffer.length == other.buffer.length && spawnFrameOrOffset == other.spawnFrameOrOffset;
 		}
 
 		public readonly override int GetHashCode() {
@@ -28,12 +27,13 @@ namespace Latios.Myri {
 	}
 
 	
-	internal struct FilterSamples {
-		public bool					stereo;
-		public DynamicBuffer<float>	samples;
+	internal unsafe struct FilterSamples {
+		public bool		stereo;
+		public float*	samplesBuffer;
+		public int		length;
 
 		public readonly override int	GetHashCode() {
-			return new int2(stereo ? 1 : 0, samples.AsNativeArray().GetHashCode()).GetHashCode();
+			return new int3(stereo ? 1 : 0, (int)((ulong)samplesBuffer >> 4), length).GetHashCode();
 		}
 	}
 }
