@@ -28,6 +28,7 @@ namespace Latios.Myri {
 				var buffers				= chunk.GetBufferAccessor(ref bufferHandle);
 				for (int i = 0; i < chunk.Count; i++) {
 					var filter = filters[i];
+					// NEED FIX
 					if ((!filter.IsInitialized) || (filter.m_spawnedBufferId - lastConsumedBufferId.Value > 0 && (lastPlayedAudioFrame.Value - filter.m_spawnedAudioFrame >= 0))) {
 						filter.m_spawnedBufferId	= bufferId;
 						filter.m_spawnedAudioFrame	= audioFrame.Value;
@@ -39,19 +40,21 @@ namespace Latios.Myri {
 					var worldTransforms	= worldTransformHandle.Resolve(chunk);
 					var cones			= chunk.GetNativeArray(ref coneHandle);
 					for (int i = 0; i < chunk.Count; i++) {
+						DynamicBuffer<float> buf = buffers[i].Reinterpret<float>();
 						emitters[firstEntityIndex + i] = new FilterEmitter {
-							samples		= new() {stereo = filters[i].stereo, samplesBuffer = (float*)buffers[i].AsNativeArray().GetUnsafeReadOnlyPtr(), length = buffers[i].Length},
-							source		= filters[i],
-							transform	= new RigidTransform(worldTransforms[i].rotation, worldTransforms[i].position),
-							cone		= cones[i],
-							useCone		= true
+							samples     = new() {stereo = filters[i].stereo, samplesBuffer = (float*)buf.AsNativeArray().GetUnsafeReadOnlyPtr(), length = buf.Length},
+							source      = filters[i],
+							transform   = new RigidTransform(worldTransforms[i].rotation, worldTransforms[i].position),
+							cone        = cones[i],
+							useCone     = true
 						};
 					}
 				} else {
 					var worldTransforms = worldTransformHandle.Resolve(chunk);
 					for (int i = 0; i < chunk.Count; i++) {
+						DynamicBuffer<float> buf = buffers[i].Reinterpret<float>();
 						emitters[firstEntityIndex + i] = new FilterEmitter {
-							samples		= new() {stereo = filters[i].stereo, samplesBuffer = (float*)buffers[i].AsNativeArray().GetUnsafeReadOnlyPtr(), length = buffers[i].Length},
+							samples		= new() {stereo = filters[i].stereo, samplesBuffer = (float*)buf.AsNativeArray().GetUnsafeReadOnlyPtr(), length = buf.Length},
 							source		= filters[i],
 							transform	= new RigidTransform(worldTransforms[i].rotation, worldTransforms[i].position),
 							cone		= default,

@@ -19,6 +19,11 @@ namespace Latios.Myri {
 		internal readonly bool	IsInitialized => (m_spawnedBufferId != 0) | (m_spawnedBufferId != m_spawnedAudioFrame);
 	}
 
+	public struct FilterBufferFrames : IComponentData {
+		public int	headFrame;
+		public int	tailFrame;
+	}
+
 	public struct AudioSourceFilterBufferInput : IBufferElementData {
 		public float	sample;
 	}

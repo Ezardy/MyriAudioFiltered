@@ -110,26 +110,23 @@ namespace Latios.Myri.Authoring
 			}
 
 			m_handle = baker.RequestCreateBlobAsset(authoring.clip, authoring.voices);
-			return m_handle.IsValid;
+			return m_handle.IsValid || m_filtered;
 		}
 
 		public void PostProcessBlobRequests(EntityManager entityManager, Entity entity)
 		{
 			if (m_filtered) {
-				DynamicBuffer<float> buffer = entityManager.GetBuffer<AudioSourceFilterBufferInput>(entity).Reinterpret<float>();
-				AudioSourceFilter filter = entityManager.GetComponentData<AudioSourceFilter>(entity);
+				DynamicBuffer<float>	buffer = entityManager.GetBuffer<AudioSourceFilterBufferInput>(entity).Reinterpret<float>();
+				AudioSourceFilter		filter = entityManager.GetComponentData<AudioSourceFilter>(entity);
 				UnityEngine.AudioSettings.GetDSPBufferSize(out int m_samplesPerFrame, out _);
-				int samplesCount = filter.stereo ? m_samplesPerFrame * 2 : m_samplesPerFrame;
+				int	samplesCount = (filter.stereo ? m_samplesPerFrame * 2 : m_samplesPerFrame) * 6;
 				for (int i = 0; i < samplesCount ; i += 1)
 					buffer.Add(0.0f);
-			} else if (m_looped)
-			{
+			} else if (m_looped) {
 				var source    = entityManager.GetComponentData<AudioSourceLooped>(entity);
 				source.m_clip = m_handle.Resolve(entityManager);
 				entityManager.SetComponentData(entity, source);
-			}
-			else
-			{
+			} else {
 				var source    = entityManager.GetComponentData<AudioSourceOneShot>(entity);
 				source.m_clip = m_handle.Resolve(entityManager);
 				entityManager.SetComponentData(entity, source);

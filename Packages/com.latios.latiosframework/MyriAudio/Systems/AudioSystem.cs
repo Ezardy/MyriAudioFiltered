@@ -55,6 +55,7 @@ namespace Latios.Myri.Systems
 		ComponentTypeHandle<AudioSourceOneShot>			m_oneshotHandle;
 		ComponentTypeHandle<AudioSourceLooped>			m_loopedHandle;
 		ComponentTypeHandle<AudioSourceFilter>			m_filteredHandle;
+		ComponentTypeHandle<FilterBufferFrames>			m_bufferFramesHandle;
 		BufferTypeHandle<AudioSourceFilterBufferInput>	m_bufferHandle;
 		ComponentTypeHandle<AudioSourceEmitterCone>		m_coneHandle;
 		WorldTransformReadOnlyAspect.TypeHandle			m_worldTransformHandle;
@@ -81,12 +82,13 @@ namespace Latios.Myri.Systems
 			m_oneshotsToDestroyWhenFinishedQuery	= state.Fluent().With<AudioSourceOneShot>().With<AudioSourceDestroyOneShotWhenFinished>(true).Build();
 			m_oneshotsQuery							= state.Fluent().With<AudioSourceOneShot>().Build();
 			m_loopedQuery							= state.Fluent().With<AudioSourceLooped>().Build();
-			m_filteredQuery							= state.Fluent().With<AudioSourceFilter>().With<AudioSourceFilterBufferInput>().Build();
+			m_filteredQuery							= state.Fluent().With<AudioSourceFilter>().With<AudioSourceFilterBufferInput>().With<FilterBufferFrames>().Build();
 
 			m_listenerHandle		= state.GetComponentTypeHandle<AudioListener>(true);
 			m_oneshotHandle			= state.GetComponentTypeHandle<AudioSourceOneShot>(false);
 			m_loopedHandle			= state.GetComponentTypeHandle<AudioSourceLooped>(false);
 			m_filteredHandle		= state.GetComponentTypeHandle<AudioSourceFilter>(false);
+			m_bufferFramesHandle	= state.GetComponentTypeHandle<FilterBufferFrames>(false);
 			m_bufferHandle			= state.GetBufferTypeHandle<AudioSourceFilterBufferInput>(true);
 			m_coneHandle			= state.GetComponentTypeHandle<AudioSourceEmitterCone>(true);
 			m_worldTransformHandle	= new WorldTransformReadOnlyAspect.TypeHandle(ref state);
@@ -175,6 +177,7 @@ namespace Latios.Myri.Systems
 			m_oneshotHandle.Update(ref state);
 			m_loopedHandle.Update(ref state);
 			m_filteredHandle.Update(ref state);
+			m_bufferFramesHandle.Update(ref state);
 			m_bufferHandle.Update(ref state);
 			m_coneHandle.Update(ref state);
 			m_worldTransformHandle.Update(ref state);
@@ -420,6 +423,7 @@ namespace Latios.Myri.Systems
 				listenerBufferParameters = listenerBufferParameters,
 				forIndexToListenerAndChannelIndices = forIndexToListenerAndChannelIndices.AsDeferredJobArray(),
 				outputSamplesMegaBuffer = ildBuffer.buffer.AsDeferredJobArray(),
+				audioFrame = m_audioFrame,
 				sampleRate = m_sampleRate,
 				samplesPerFrame = m_samplesPerFrame
 			}.Schedule(forIndexToListenerAndChannelIndices, 1, JobHandle.CombineDependencies(loopedSamplingJH, filteredBatchingJH));
