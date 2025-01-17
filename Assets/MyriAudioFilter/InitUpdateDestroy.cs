@@ -22,18 +22,17 @@ namespace Latios.Myri {
 
 			[ReadOnly, DeallocateOnJobCompletion] public NativeArray<int>	firstEntityInChunkIndices;
 
-			public unsafe void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask) {
+			public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask) {
+
 				var firstEntityIndex	= firstEntityInChunkIndices[unfilteredChunkIndex];
 				var filters				= chunk.GetNativeArray(ref filteredHandle);
 				var buffers				= chunk.GetBufferAccessor(ref bufferHandle);
+
 				for (int i = 0; i < chunk.Count; i++) {
-					var filter = filters[i];
-					// NEED FIX
-					if ((!filter.IsInitialized) || (filter.m_spawnedBufferId - lastConsumedBufferId.Value > 0 && (lastPlayedAudioFrame.Value - filter.m_spawnedAudioFrame >= 0))) {
-						filter.m_spawnedBufferId	= bufferId;
-						filter.m_spawnedAudioFrame	= audioFrame.Value;
-						filters[i]					= filter;
-					}
+					AudioSourceFilter	filter = filters[i];
+					filter.lastFrame = filter.frame;
+					filter.frame = audioFrame.Value;
+					filters[i] = filter;
 				}
 
 				if (chunk.Has(ref coneHandle)) {
@@ -41,25 +40,29 @@ namespace Latios.Myri {
 					var cones			= chunk.GetNativeArray(ref coneHandle);
 					for (int i = 0; i < chunk.Count; i++) {
 						DynamicBuffer<float> buf = buffers[i].Reinterpret<float>();
-						emitters[firstEntityIndex + i] = new FilterEmitter {
-							samples     = new() {stereo = filters[i].stereo, samplesBuffer = (float*)buf.AsNativeArray().GetUnsafeReadOnlyPtr(), length = buf.Length},
-							source      = filters[i],
-							transform   = new RigidTransform(worldTransforms[i].rotation, worldTransforms[i].position),
-							cone        = cones[i],
-							useCone     = true
-						};
+						unsafe {
+							emitters[firstEntityIndex + i] = new FilterEmitter {
+								samples     = new() {stereo = filters[i].stereo, samplesBuffer = (float*)buf.AsNativeArray().GetUnsafeReadOnlyPtr(), length = buf.Length},
+								source      = filters[i],
+								transform   = new RigidTransform(worldTransforms[i].rotation, worldTransforms[i].position),
+								cone        = cones[i],
+								useCone     = true
+							};
+						}
 					}
 				} else {
 					var worldTransforms = worldTransformHandle.Resolve(chunk);
 					for (int i = 0; i < chunk.Count; i++) {
 						DynamicBuffer<float> buf = buffers[i].Reinterpret<float>();
-						emitters[firstEntityIndex + i] = new FilterEmitter {
-							samples		= new() {stereo = filters[i].stereo, samplesBuffer = (float*)buf.AsNativeArray().GetUnsafeReadOnlyPtr(), length = buf.Length},
-							source		= filters[i],
-							transform	= new RigidTransform(worldTransforms[i].rotation, worldTransforms[i].position),
-							cone		= default,
-							useCone		= false
-						};
+						unsafe {
+							emitters[firstEntityIndex + i] = new FilterEmitter {
+								samples		= new() {stereo = filters[i].stereo, samplesBuffer = (float*)buf.AsNativeArray().GetUnsafeReadOnlyPtr(), length = buf.Length},
+								source		= filters[i],
+								transform	= new RigidTransform(worldTransforms[i].rotation, worldTransforms[i].position),
+								cone		= default,
+								useCone		= false
+							};
+						}
 					}
 				}
 			}

@@ -7,6 +7,6 @@ using Unity.Entities;
 [UpdateBefore(typeof(AudioSystem))]
 public partial class AudioFiltersRootSuperSystem : RootSuperSystem {
 	protected override void CreateSystems() {
-		GetOrCreateAndAddUnmanagedSystem<SineWaveFilterSystem>();
+		GetOrCreateAndAddUnmanagedSystem<AudioFilterSystem>();
 	}
 }

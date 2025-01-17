@@ -119,7 +119,7 @@ namespace Latios.Myri.Authoring
 				DynamicBuffer<float>	buffer = entityManager.GetBuffer<AudioSourceFilterBufferInput>(entity).Reinterpret<float>();
 				AudioSourceFilter		filter = entityManager.GetComponentData<AudioSourceFilter>(entity);
 				UnityEngine.AudioSettings.GetDSPBufferSize(out int m_samplesPerFrame, out _);
-				int	samplesCount = (filter.stereo ? m_samplesPerFrame * 2 : m_samplesPerFrame) * 6;
+				int	samplesCount = (filter.stereo ? m_samplesPerFrame * 2 : m_samplesPerFrame) * 3;
 				for (int i = 0; i < samplesCount ; i += 1)
 					buffer.Add(0.0f);
 			} else if (m_looped) {

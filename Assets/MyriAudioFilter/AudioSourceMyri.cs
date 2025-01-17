@@ -1,11 +1,12 @@
 using Unity.Entities;
+using Unity.Jobs;
 
 namespace Latios.Myri {
 	public struct AudioSourceFilter : IComponentData {
-		internal int	m_spawnedAudioFrame;
-		internal int	m_spawnedBufferId;
-
-		public bool	stereo;
+		public int		offset;
+		public int		lastFrame;
+		public int		frame;
+		public bool		stereo;
 		public bool		play;
 		public float	volume;
 		public float	innerRange;
@@ -13,18 +14,26 @@ namespace Latios.Myri {
 		public float	rangeFadeMargin;
 
 		public void ResetPlaybackState() {
-			m_spawnedAudioFrame = 0;
-			m_spawnedBufferId = 0;
+			frame = 0;
+			lastFrame = 0;
 		}
-		internal readonly bool	IsInitialized => (m_spawnedBufferId != 0) | (m_spawnedBufferId != m_spawnedAudioFrame);
 	}
 
-	public struct FilterBufferFrames : IComponentData {
-		public int	headFrame;
-		public int	tailFrame;
-	}
-
+	[InternalBufferCapacity(0)]
 	public struct AudioSourceFilterBufferInput : IBufferElementData {
 		public float	sample;
+	}
+
+	public partial struct AudioFilterJobHandle : ICollectionComponent {
+		public JobHandle	handle;
+
+		public JobHandle TryDispose(JobHandle inputDeps) {
+			JobHandle jobHandle;
+			if (handle.IsCompleted)
+				jobHandle = inputDeps;
+			else
+				jobHandle = JobHandle.CombineDependencies(inputDeps, handle);
+			return jobHandle;
+		}
 	}
 }
