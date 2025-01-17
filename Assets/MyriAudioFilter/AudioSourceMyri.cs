@@ -23,17 +23,4 @@ namespace Latios.Myri {
 	public struct AudioSourceFilterBufferInput : IBufferElementData {
 		public float	sample;
 	}
-
-	public partial struct AudioFilterJobHandle : ICollectionComponent {
-		public JobHandle	handle;
-
-		public JobHandle TryDispose(JobHandle inputDeps) {
-			JobHandle jobHandle;
-			if (handle.IsCompleted)
-				jobHandle = inputDeps;
-			else
-				jobHandle = JobHandle.CombineDependencies(inputDeps, handle);
-			return jobHandle;
-		}
-	}
 }

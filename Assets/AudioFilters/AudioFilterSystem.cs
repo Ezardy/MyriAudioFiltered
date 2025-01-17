@@ -16,7 +16,6 @@ public partial struct AudioFilterSystem : ISystem {
 		latiosWorld = state.GetLatiosWorldUnmanaged();
 		UnityEngine.AudioSettings.GetDSPBufferSize(out samplesPerFrame, out _);
 		outputSampleRate = UnityEngine.AudioSettings.outputSampleRate;
-		latiosWorld.worldBlackboardEntity.AddOrSetCollectionComponentAndDisposeOld(new AudioFilterJobHandle());
 		latiosWorld.worldBlackboardEntity.AddComponentDataIfMissing(new AudioSettings {
 			safetyAudioFrames = 2,
 			audioFramesPerUpdate = 1,
@@ -33,8 +32,6 @@ public partial struct AudioFilterSystem : ISystem {
 	public void OnUpdate(ref SystemState state) {
 		JobHandle		ecsJH = state.Dependency;
 		AudioSettings	settings = latiosWorld.worldBlackboardEntity.GetComponentData<AudioSettings>();
-
-		latiosWorld.worldBlackboardEntity.GetCollectionComponent<AudioFilterJobHandle>().handle.Complete();
 
 		JobHandle	resizeHandle = new BufferResizeJob() {
 			settings = settings,

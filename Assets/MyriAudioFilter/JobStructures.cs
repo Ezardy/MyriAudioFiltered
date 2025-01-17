@@ -4,36 +4,25 @@ using Unity.Mathematics;
 
 namespace Latios.Myri {
 	internal struct BufferFrameLookup : IEquatable<BufferFrameLookup> {
-		public FilterSamples	buffer;
+		public int				bufferStart;
+		public int				channels;
 		public int				spawnFrameOrOffset;
 
-		public unsafe readonly bool Equals(BufferFrameLookup other) {
-			return buffer.samplesBuffer == other.buffer.samplesBuffer && buffer.stereo == other.buffer.stereo && buffer.length == other.buffer.length && spawnFrameOrOffset == other.spawnFrameOrOffset;
+		public readonly bool Equals(BufferFrameLookup other) {
+			return bufferStart == other.bufferStart && channels == other.channels && spawnFrameOrOffset == other.spawnFrameOrOffset;
 		}
 
 		public readonly override int GetHashCode() {
-			return new int2(buffer.GetHashCode(), spawnFrameOrOffset).GetHashCode();
+			return new int2(bufferStart, spawnFrameOrOffset).GetHashCode();
 		}
 	}
 	
 	internal struct FilterEmitter
 	{
-
-		public FilterSamples			samples;
+		public int						bufferIndex;
 		public AudioSourceFilter		source;
 		public RigidTransform			transform;
 		public AudioSourceEmitterCone	cone;
 		public bool						useCone;
-	}
-
-	
-	internal unsafe struct FilterSamples {
-		public bool		stereo;
-		public float*	samplesBuffer;
-		public int		length;
-
-		public readonly override int	GetHashCode() {
-			return new int3(stereo ? 1 : 0, (int)((ulong)samplesBuffer >> 4), length).GetHashCode();
-		}
 	}
 }

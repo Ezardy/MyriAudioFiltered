@@ -193,6 +193,8 @@ namespace Latios.Myri.Systems
 				bufferId = m_currentBufferId
 			};
 
+			AudioSettings	audioSettings = audioSettingsLookup[latiosWorld.worldBlackboardEntity];
+
 			//Containers
 			var entityCommandBuffer      = latiosWorld.syncPoint.CreateEntityCommandBuffer();
 			var dspCommandBlock          = m_graph.CreateCommandBlock();
@@ -221,10 +223,10 @@ namespace Latios.Myri.Systems
 			var oneshotTargetListenerIndices		= new NativeList<int>(Allocator.TempJob);
 			var loopedTargetListenerIndices			= new NativeList<int>(Allocator.TempJob);
 			var filteredTargetListenerIndices		= new NativeList<int>(Allocator.TempJob);
+			NativeArray<float>	filterBuffers		= new((audioSettings.audioFramesPerUpdate + audioSettings.safetyAudioFrames) * 2 * m_samplesPerFrame, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
 			//Jobs
-			if (!m_lastUpdateJobHandle.IsCompleted)
-				m_lastUpdateJobHandle.Complete();
+			m_lastUpdateJobHandle.Complete();
 
 			//This may lag behind what the job threads will see.
 			//That's fine, as this is only used for disposing memory.
@@ -333,6 +335,7 @@ namespace Latios.Myri.Systems
 				bufferId = m_currentBufferId,
 				emitters = filteredEmitters,
 				firstEntityInChunkIndices = firstEntityInChunkIndices,
+				filterBuffers = filterBuffers,
 			}.ScheduleParallel(m_filteredQuery, updateFilteredJH);
 
 			//No more ECS
@@ -423,7 +426,8 @@ namespace Latios.Myri.Systems
 				outputSamplesMegaBuffer = ildBuffer.buffer.AsDeferredJobArray(),
 				targetFrame = m_audioFrame,
 				sampleRate = m_sampleRate,
-				samplesPerFrame = m_samplesPerFrame
+				samplesPerFrame = m_samplesPerFrame,
+				filterBuffers = filterBuffers
 			}.Schedule(forIndexToListenerAndChannelIndices, 1, JobHandle.CombineDependencies(loopedSamplingJH, filteredBatchingJH));
 
 			var shipItJH = new GraphHandling.SubmitToDspGraphJob
@@ -445,6 +449,7 @@ namespace Latios.Myri.Systems
 				oneshotEmitters.Dispose(oneshotsBatchingJH),
 				loopedEmitters.Dispose(loopedBatchingJH),
 				filteredEmitters.Dispose(filteredBatchingJH),
+				filterBuffers.Dispose(filteredSamplingJH),
 				oneshotWeightsStream.Dispose(oneshotsBatchingJH),
 				loopedWeightsStream.Dispose(loopedBatchingJH),
 				filteredWeightsStream.Dispose(filteredBatchingJH),
@@ -479,8 +484,6 @@ namespace Latios.Myri.Systems
 			disposeJobHandles.Dispose();
 
 			m_buffersInFlight.Add(ildBuffer);
-
-			latiosWorld.worldBlackboardEntity.AddOrSetCollectionComponentAndDisposeOld<AudioFilterJobHandle>(new() {handle = m_lastUpdateJobHandle});
 		}
 
 		public void OnDestroy(ref SystemState state)
@@ -489,8 +492,7 @@ namespace Latios.Myri.Systems
 				return;
 
 			//UnityEngine.Debug.Log("AudioSystem.OnDestroy");
-			if (!m_lastUpdateJobHandle.IsCompleted)
-				m_lastUpdateJobHandle.Complete();
+			m_lastUpdateJobHandle.Complete();
 			state.CompleteDependency();
 			var commandBlock = m_graph.CreateCommandBlock();
 			foreach (var s in m_listenerGraphStatesToDispose)

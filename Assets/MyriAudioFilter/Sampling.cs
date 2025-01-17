@@ -9,16 +9,14 @@ namespace Latios.Myri {
 		[BurstCompile]
 		public struct SampleFilterBufferJob : IJobParallelForDefer
 		{
-			[ReadOnly] public NativeArray<BufferFrameLookup>	clipFrameLookups;
-			[ReadOnly] public NativeArray<Weights>				weights;
-			[ReadOnly] public NativeArray<int>					targetListenerIndices;
-
-			[ReadOnly] public NativeArray<ListenerBufferParameters>	listenerBufferParameters;
-			[ReadOnly] public NativeArray<int2>						forIndexToListenerAndChannelIndices;
-
-			[ReadOnly] public NativeReference<int>	targetFrame;
-
+			[ReadOnly] public NativeArray<BufferFrameLookup>				clipFrameLookups;
+			[ReadOnly] public NativeArray<Weights>							weights;
+			[ReadOnly] public NativeArray<int>								targetListenerIndices;
+			[ReadOnly] public NativeArray<ListenerBufferParameters>			listenerBufferParameters;
+			[ReadOnly] public NativeArray<int2>								forIndexToListenerAndChannelIndices;
+			[ReadOnly] public NativeReference<int>							targetFrame;
 			[NativeDisableParallelForRestriction] public NativeArray<float>	outputSamplesMegaBuffer;
+			[ReadOnly] public NativeArray<float>							filterBuffers;
 
 			public int	sampleRate;
 
@@ -48,13 +46,11 @@ namespace Latios.Myri {
 				}
 			}
 
-			unsafe readonly void SampleMatchedRate(in BufferFrameLookup bufferFrameLookups, bool isRightChannel, float weight, NativeArray<float> output)
+			readonly void SampleMatchedRate(in BufferFrameLookup bufferFrameLookups, bool isRightChannel, float weight, NativeArray<float> output)
 			{
-				NativeSlice<float>	mergedSamples = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<float>(bufferFrameLookups.buffer.samplesBuffer, bufferFrameLookups.buffer.length, Allocator.None);
-				NativeSlice<float>	samplesSlice = !bufferFrameLookups.buffer.stereo ? mergedSamples : isRightChannel ? mergedSamples.SliceWithStride<float>(1) : mergedSamples.SliceWithStride<float>(0);
+				NativeSlice<float>	mergedSamples = filterBuffers.GetSubArray(bufferFrameLookups.bufferStart, output.Length * bufferFrameLookups.channels);
+				NativeSlice<float>	samplesSlice = bufferFrameLookups.channels == 1 ? mergedSamples : isRightChannel ? mergedSamples.SliceWithStride<float>(1) : mergedSamples.SliceWithStride<float>(0);
 
-				AtomicSafetyHandle	safetyHandle = AtomicSafetyHandle.Create();
-				NativeSliceUnsafeUtility.SetAtomicSafetyHandle(ref samplesSlice, safetyHandle);
 				int	p1start = bufferFrameLookups.spawnFrameOrOffset * samplesPerFrame;
 				int	p1Length = output.Length - p1start;
 				int i;
@@ -62,7 +58,6 @@ namespace Latios.Myri {
 					output[i] = samplesSlice[i + p1start] * weight;
 				for (; i < output.Length; i += 1)
 					output[i] = samplesSlice[i - p1Length] * weight;
-				AtomicSafetyHandle.Release(safetyHandle);
 			}
 		}
 	}

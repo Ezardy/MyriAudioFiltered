@@ -18,6 +18,7 @@ namespace Latios.Myri {
 			[ReadOnly] public NativeReference<int>									audioFrame;
 			[ReadOnly] public NativeReference<int>									lastPlayedAudioFrame;
 			[ReadOnly] public NativeReference<int>									lastConsumedBufferId;
+			[NativeDisableParallelForRestriction] public NativeArray<float>			filterBuffers;
 			public int																bufferId;
 
 			[ReadOnly, DeallocateOnJobCompletion] public NativeArray<int>	firstEntityInChunkIndices;
@@ -39,30 +40,30 @@ namespace Latios.Myri {
 					var worldTransforms	= worldTransformHandle.Resolve(chunk);
 					var cones			= chunk.GetNativeArray(ref coneHandle);
 					for (int i = 0; i < chunk.Count; i++) {
-						DynamicBuffer<float> buf = buffers[i].Reinterpret<float>();
-						unsafe {
-							emitters[firstEntityIndex + i] = new FilterEmitter {
-								samples     = new() {stereo = filters[i].stereo, samplesBuffer = (float*)buf.AsNativeArray().GetUnsafeReadOnlyPtr(), length = buf.Length},
-								source      = filters[i],
-								transform   = new RigidTransform(worldTransforms[i].rotation, worldTransforms[i].position),
-								cone        = cones[i],
-								useCone     = true
-							};
-						}
+						NativeArray<float> buf = buffers[i].Reinterpret<float>().AsNativeArray();
+						int	bufferStart = buf.Length * (filters[i].stereo ? 1 : 2) * (firstEntityIndex + i);
+						buf.CopyTo(filterBuffers.GetSubArray(bufferStart, buf.Length));
+						emitters[firstEntityIndex + i] = new FilterEmitter {
+							bufferIndex = bufferStart,
+							source = filters[i],
+							transform = new RigidTransform(worldTransforms[i].rotation, worldTransforms[i].position),
+							cone = cones[i],
+							useCone = true
+						};
 					}
 				} else {
 					var worldTransforms = worldTransformHandle.Resolve(chunk);
 					for (int i = 0; i < chunk.Count; i++) {
-						DynamicBuffer<float> buf = buffers[i].Reinterpret<float>();
-						unsafe {
-							emitters[firstEntityIndex + i] = new FilterEmitter {
-								samples		= new() {stereo = filters[i].stereo, samplesBuffer = (float*)buf.AsNativeArray().GetUnsafeReadOnlyPtr(), length = buf.Length},
-								source		= filters[i],
-								transform	= new RigidTransform(worldTransforms[i].rotation, worldTransforms[i].position),
-								cone		= default,
-								useCone		= false
-							};
-						}
+						NativeArray<float> buf = buffers[i].Reinterpret<float>().AsNativeArray();
+						int	bufferStart = buf.Length * (filters[i].stereo ? 1 : 2) * (firstEntityIndex + i);
+						buf.CopyTo(filterBuffers.GetSubArray(bufferStart, buf.Length));
+						emitters[firstEntityIndex + i] = new FilterEmitter {
+							bufferIndex = bufferStart,
+							source = filters[i],
+							transform = new RigidTransform(worldTransforms[i].rotation, worldTransforms[i].position),
+							cone		= default,
+							useCone		= false
+						};
 					}
 				}
 			}

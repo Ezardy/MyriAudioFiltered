@@ -44,7 +44,7 @@ namespace Latios.Myri {
 							continue;
 
 						BufferFrameListener	cfl = new() {
-							lookup = new() {buffer = e.samples, spawnFrameOrOffset = e.source.offset},
+							lookup = new() {bufferStart = e.bufferIndex, channels = e.source.stereo ? 2 : 1, spawnFrameOrOffset = e.source.offset},
 							listenerIndex = listenerEmitterPairIndices.x
 						};
 						if (hashmap.TryGetValue(cfl, out int foundIndex)) {
