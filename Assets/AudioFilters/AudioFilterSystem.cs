@@ -26,6 +26,7 @@ public partial struct AudioFilterSystem : ISystem {
 
 	[BurstCompile]
 	public readonly void OnDestroy(ref SystemState state) {
+		state.CompleteDependency();
 	}
 
 	[BurstCompile]

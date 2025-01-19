@@ -71,3 +71,11 @@ public class LatiosBootstrap : ICustomBootstrap
         return true;
     }
 }
+
+class PreserveHierarchyBaker : Baker<UnityEngine.Transform>
+{
+    public override void Bake(UnityEngine.Transform authoring)
+    {
+        GetEntity(TransformUsageFlags.Dynamic);
+    }
+}

@@ -40,7 +40,7 @@ namespace Latios.Myri {
 					var worldTransforms	= worldTransformHandle.Resolve(chunk);
 					var cones			= chunk.GetNativeArray(ref coneHandle);
 					for (int i = 0; i < chunk.Count; i++) {
-						NativeArray<float> buf = buffers[i].Reinterpret<float>().AsNativeArray();
+						NativeArray<float>	buf = buffers[i].Reinterpret<float>().AsNativeArray();
 						int	bufferStart = buf.Length * (filters[i].stereo ? 1 : 2) * (firstEntityIndex + i);
 						buf.CopyTo(filterBuffers.GetSubArray(bufferStart, buf.Length));
 						emitters[firstEntityIndex + i] = new FilterEmitter {
@@ -54,7 +54,7 @@ namespace Latios.Myri {
 				} else {
 					var worldTransforms = worldTransformHandle.Resolve(chunk);
 					for (int i = 0; i < chunk.Count; i++) {
-						NativeArray<float> buf = buffers[i].Reinterpret<float>().AsNativeArray();
+						NativeArray<float>	buf = buffers[i].Reinterpret<float>().AsNativeArray();
 						int	bufferStart = buf.Length * (filters[i].stereo ? 1 : 2) * (firstEntityIndex + i);
 						buf.CopyTo(filterBuffers.GetSubArray(bufferStart, buf.Length));
 						emitters[firstEntityIndex + i] = new FilterEmitter {

@@ -223,7 +223,7 @@ namespace Latios.Myri.Systems
 			var oneshotTargetListenerIndices		= new NativeList<int>(Allocator.TempJob);
 			var loopedTargetListenerIndices			= new NativeList<int>(Allocator.TempJob);
 			var filteredTargetListenerIndices		= new NativeList<int>(Allocator.TempJob);
-			NativeArray<float>	filterBuffers		= new((audioSettings.audioFramesPerUpdate + audioSettings.safetyAudioFrames) * 2 * m_samplesPerFrame, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+			NativeArray<float>	filterBuffers		= new(m_samplesPerFrame * m_filteredQuery.CalculateEntityCount() * (audioSettings.audioFramesPerUpdate + audioSettings.safetyAudioFrames) * 2, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
 			//Jobs
 			m_lastUpdateJobHandle.Complete();
