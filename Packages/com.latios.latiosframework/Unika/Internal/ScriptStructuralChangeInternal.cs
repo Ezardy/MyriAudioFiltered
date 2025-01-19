@@ -114,6 +114,7 @@ namespace Latios.Unika
             }
 
             // Look up the last script to find the total bytes used, align it, and allocate the new script's memory
+            // Note: currentScriptCount is the last script index because of the master header.
             var nextFreeByteOffset = scripts[currentScriptCount].byteOffset + ScriptTypeInfoManager.GetSizeAndAlignement((short)scripts[currentScriptCount].scriptType).x;
             var alignment          = CollectionHelper.Align(nextFreeByteOffset, sizeAndAlignment.y);
             UnityEngine.Assertions.Assert.IsTrue((ulong)(alignment + sizeAndAlignment.x) <= ScriptHeader.kMaxByteOffset + 1);
@@ -129,7 +130,7 @@ namespace Latios.Unika
                 byteOffset = alignment,
                 instanceId = nextIndex
             };
-            return currentScriptCount + 1;
+            return currentScriptCount;
         }
 
         public static void FreeScript(ref DynamicBuffer<UnikaScripts> scriptBuffer, int scriptIndex)

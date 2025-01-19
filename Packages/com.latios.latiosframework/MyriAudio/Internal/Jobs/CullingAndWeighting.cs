@@ -7,7 +7,7 @@ using Unity.Transforms;
 
 namespace Latios.Myri
 {
-    internal static partial class CullingAndWeighting
+    internal static class CullingAndWeighting
     {
         public const int kBatchSize = 128;
 

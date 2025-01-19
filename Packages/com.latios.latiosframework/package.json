@@ -1,7 +1,7 @@
 {
   "name": "com.latios.latiosframework",
   "displayName": "Latios Framework for ECS",
-  "version": "0.12.0-alpha.7",
+  "version": "0.12.0-alpha.14",
   "unity": "6000.0",
   "description": "Latios Framework for ECS is a collection of tools, algorithms, and API extensions developed by a hardcore hobbyist game developer.\n\nThis package includes all of the following modules:\n▪ Core\n▪ QVVS Transforms\n▪ Psyshock Physics\n▪ Myri Audio\n▪ Kinemation Animation and Rendering\n▪ Caligraphics\n▪ Mimic\n\nExamples: \n▪ Latios Space Shooter Sample - https://github.com/Dreaming381/lsss-wip \n▪ Mini Demos - https://github.com/Dreaming381/LatiosFrameworkMiniDemos \n▪ Free Parking - https://github.com/Dreaming381/Free-Parking",
   "documentationURL": "https://github.com/Dreaming381/Latios-Framework-Documentation",
@@ -21,5 +21,5 @@
   "author": {
     "name": "Dreaming I'm Latios"
   },
-  "_fingerprint": "40ad448c1df6d5b9a5d037bd0a61d26929e85b8c"
+  "_fingerprint": "f6681ae465b7784244513e0641c80797c8f37e7c"
 }

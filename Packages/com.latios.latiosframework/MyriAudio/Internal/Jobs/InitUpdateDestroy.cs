@@ -8,7 +8,7 @@ using Unity.Mathematics;
 
 namespace Latios.Myri
 {
-    internal static partial class InitUpdateDestroy
+    internal static class InitUpdateDestroy
     {
         //Parallel
         [BurstCompile]
